@@ -39,10 +39,10 @@ function Navbar() {
                 <ul>
                     <li id="logo" ><a href="#home"><img style={{ height: "1.5em" }} src="https://i.ibb.co/vDYXr2S/path1079.png" alt="log"></img>Mail Track</a></li>
 
-                    <li style={{ float: "right" }}><a><div id="howtouse">How to Use <i className="material-icons-outlined">
+                    <li style={{ float: "right" }}><a href="dashboard"><div id="howtouse">Dashboard<i className="material-icons-outlined">
                         arrow_forward_ios</i></div></a></li>
 
-                    {/* <li style={{ float: "right" }}><a><div id="login">Logout</div></a></li> */}
+                    {/* <li style={{ float: "right" }}><a href=""><div id="login">Dashboard</div></a></li> */}
                     <li style={{ float: "right" }}><a><div>Welcome  </div></a></li>
                 </ul>
 

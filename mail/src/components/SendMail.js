@@ -11,7 +11,7 @@ function SendMail() {
   const [recemail, setRecemail] = useState("")
 
   function handleSubmit() {
-
+    // http://localhost:5000/sendemail
     fetch("https://mailtrack.vercel.app/sendemail", {
       method: "POST",
       headers: {

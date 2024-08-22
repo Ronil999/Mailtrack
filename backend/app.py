@@ -1,7 +1,7 @@
-from flask import Flask, request, send_from_directory,jsonify
+from flask import Flask, request, send_from_directory, jsonify
 import socket
 from requests import get
-from flask_cors import CORS,cross_origin
+from flask_cors import CORS, cross_origin
 import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -9,11 +9,16 @@ import os
 from PIL import Image
 import datetime
 import pymongo
+from imgurpython import ImgurClient  # Import the ImgurClient
 
 app = Flask(__name__, static_url_path='/static')
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
-# Define the root route
+# Initialize Imgur client
+IMGUR_CLIENT_ID = '83c0116222866f3'  # Replace with your Imgur Client ID
+IMGUR_CLIENT_SECRET = '2f87e3a3a2ccd66315d141d6cba2530774d0b8ce'  # Replace with your Imgur Client Secret
+imgur_client = ImgurClient(IMGUR_CLIENT_ID, IMGUR_CLIENT_SECRET)
+
 @app.route('/', methods=["GET"])
 @cross_origin()
 def home():
@@ -58,7 +63,6 @@ def dashdata():
     return jsonify({1:1})
 
 
-
 @app.route('/sendemail', methods=["POST"]) 
 @cross_origin()   
 def sendemail():
@@ -72,23 +76,23 @@ def sendemail():
         message["From"] = sender_email
         message["To"] = receiver_email
 
-        # Ensure directory exists
-        user_directory = f"static/{sender_email}"
-        if not os.path.isdir(user_directory):
-            os.makedirs(user_directory)
-        
-        # Create and save image
+        # Create and save image temporarily
         image = Image.new('RGB', (10, 10))
         filename = f"{sender_email}_{receiver_email}_{datetime.datetime.now().strftime('%Y-%m-%d+%H-%M-%S')}.jpg"
-        image.save(os.path.join(user_directory, filename))
+        temp_path = os.path.join("/tmp", filename)  # Save in /tmp directory
+        image.save(temp_path)
         
+        # Upload image to Imgur
+        imgur_response = imgur_client.upload_from_path(temp_path, anon=True)
+        imgur_link = imgur_response['link']
+
         # Email content
         text = request.json["mailcontent"]
         html = f"""\
         <html>
           <body>
             <p>
-               <img src="http://localhost:5000/explorer/{sender_email}/{filename}"></img>
+               <img src="{imgur_link}"></img>
             </p>
           </body>
         </html>
@@ -112,7 +116,7 @@ def sendemail():
             myclient = pymongo.MongoClient("mongodb+srv://ronilcoder999:wfO4LmraAjvrqDMG@mailtrack.chu56.mongodb.net/?retryWrites=true&w=majority&appName=Mailtrack")
             mydb = myclient["Mailtrack"]
             mycol = mydb["Emailtrack"]
-            mydict = {"sender": sender_email, "receiver": receiver_email, "filename": filename, "opened": []}
+            mydict = {"sender": sender_email, "receiver": receiver_email, "filename": filename, "opened": [], "imgur_link": imgur_link}
             x = mycol.insert_one(mydict)
             
             return jsonify({1: 1})

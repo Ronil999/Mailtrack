@@ -12,7 +12,7 @@ function SendMail() {
 
   function handleSubmit() {
 
-    fetch("http://localhost:5000/sendemail", {
+    fetch("https://mailtrack.vercel.app/sendemail", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

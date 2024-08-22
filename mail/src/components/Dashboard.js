@@ -7,7 +7,7 @@ function Dashboard() {
   const [response,setResponse]=useState({"data":{"res":[]}})
   const [bool,setBool] = useState(false)
   useEffect(() => {
-    axios.post("http://localhost:5000/dashdata",
+    axios.post("https://mailtrack.vercel.app/dashdata",
       { "email": "ronillakhani999@gmail.com" }
     )
       .then(res => {

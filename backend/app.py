@@ -13,6 +13,11 @@ import pymongo
 app = Flask(__name__, static_url_path='/static')
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
+# Define the root route
+@app.route('/', methods=["GET"])
+@cross_origin()
+def home():
+    return "Hello, World!"
 
 @app.route('/explorer/<username>/<path>',methods=["GET","POST"])
 @cross_origin()

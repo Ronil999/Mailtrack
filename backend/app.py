@@ -73,7 +73,7 @@ def sendemail():
         message["To"] = receiver_email
 
         # Ensure directory exists
-        user_directory = f"backend/static/{sender_email}"
+        user_directory = f"static/{sender_email}"
         if not os.path.isdir(user_directory):
             os.makedirs(user_directory)
         

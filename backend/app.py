@@ -79,22 +79,22 @@ def sendemail():
         <html>
         <head>
             <style>
-                .double-checkmark {
-                position: relative;
-                font-size: 200%; 
-                color: #4CAF50; 
-                }
+                .double-checkmark {{
+                    position: relative;
+                    font-size: 200%; 
+                    color: #4CAF50; 
+                }}
 
-                .double-checkmark::before {
-                content: '\2714'; 
-                position: absolute;
-                left: -7px; 
-                }
+                .double-checkmark::before {{
+                    content: '\\2714'; 
+                    position: absolute;
+                    left: -7px; 
+                }}
 
-                .double-checkmark::after {
-                content: '\2714'; 
-                position: absolute;
-                }
+                .double-checkmark::after {{
+                    content: '\\2714'; 
+                    position: absolute;
+                }}
             </style>
         </head>
           <body>

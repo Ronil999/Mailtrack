@@ -33,7 +33,6 @@ def explorer(username, path):
     print("Path Name:", path, "\nUserName:", username)
     return send_from_directory('/tmp', path)  # Serve the image from the /tmp directory
 
-
 @app.route('/dashdata', methods=["GET", "POST"])
 @cross_origin()
 def dashdata():
@@ -66,22 +65,21 @@ def sendemail():
         message["From"] = sender_email
         message["To"] = receiver_email
 
-        # Create and save image temporarily in /tmp directory
-        image = Image.new('RGB', (10, 10))
-        filename = f"{sender_email}_{receiver_email}_{datetime.datetime.now().strftime('%Y-%m-%d+%H-%M-%S')}.jpg"
+        # Create and save a 1x1 transparent image temporarily in /tmp directory
+        image = Image.new('RGBA', (1, 1), (0, 0, 0, 0))  # Create a transparent image
+        filename = f"{sender_email}_{receiver_email}_{datetime.datetime.now().strftime('%Y-%m-%d+%H-%M-%S')}.png"
         temp_path = os.path.join("/tmp", filename)  # Save in /tmp directory
         image.save(temp_path)
 
         # Email content
         text = request.json["mailcontent"]
         # Use your Flask route for the image URL
-        img_url = f"https://your-vercel-deployment-url.vercel.app/explorer/{sender_email}/{filename}"
+        img_url = f"https://mailtrack.vercel.app/explorer/{sender_email}/{filename}"
         html = f"""\
         <html>
           <body>
-            <p>
-               <img src="{img_url}" alt="tracker"></img>
-            </p>
+            {text}<br>
+            <img src="{img_url}" width="1" height="1" style="display:none;" alt="tracker" />
           </body>
         </html>
         """

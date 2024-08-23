@@ -75,37 +75,44 @@ def sendemail():
         text = request.json["mailcontent"]
         # Use your Flask route for the image URL
         img_url = f"https://mailtrack.vercel.app/explorer/{sender_email}/{filename}"
+        
+        # Corrected HTML with properly formatted CSS
         html = f"""\
         <html>
         <head>
             <style>
                 .double-checkmark {{
                     position: relative;
-                    font-size: 200%; 
-                    color: #4CAF50; 
+                    font-size: 200%;
+                    color: #4CAF50;
+                    display: inline-block;
                 }}
 
                 .double-checkmark::before {{
-                    content: '\\2714'; 
+                    content: '\2714'; /* Unicode for checkmark */
                     position: absolute;
-                    left: -7px; 
+                    left: 0;
+                    top: 0;
                 }}
 
                 .double-checkmark::after {{
-                    content: '\\2714'; 
+                    content: '\2714'; /* Unicode for checkmark */
                     position: absolute;
+                    left: 0;
+                    top: 0.8em; /* Adjust based on the font size */
                 }}
             </style>
         </head>
-          <body>
+        <body>
             {text}<br>
             
             <img src="{img_url}" width="1" height="1" style="display:none;" alt="tracker" />
-            <span>MailTrack</span></br>
+            <span>MailTrack</span><br>
             <span class="double-checkmark"></span>
-          </body>
+        </body>
         </html>
         """
+
 
         # Email parts
         part1 = MIMEText(text, "plain")

@@ -1,62 +1,88 @@
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from './Home';
 import Dashboard from './Dashboard';
 import SendMail from './SendMail';
-import { motion } from 'framer-motion'
-// import { useAuth0 } from "@auth0/auth0-react";
 import 'material-icons/iconfont/material-icons.css';
+import Login from "./Login";
+
 function Navbar() {
-    // const { loginWithRedirect, logout } = useAuth0();
-    // const { user, isAuthenticated, isLoading } = useAuth0();
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userEmail, setUserEmail] = useState('');
 
-    const buttonvariant = {
-        hover: {
-            scale: 1.17,
-            backgroundColor: '#146356',
-            color: 'white',
-            transition: {
-                duration: 0.1,
-                ease: 'easeInOut'
-            }
+    useEffect(() => {
+        // Check if there is a user email in localStorage
+        const storedEmail = localStorage.getItem('userEmail');
+        if (storedEmail) {
+            setIsLoggedIn(true);
+            setUserEmail(storedEmail);
+        } else {
+            setIsLoggedIn(false);
         }
-    }
+    }, []);
 
-    const ulvariant = {
-        hidden: {
-            y: -60,
-            opacity: 0,
-        },
-        visible: {
-            y: 0,
-            opacity: 1,
-            transition: { delay: 1, duration: 0.4, type: 'spring', stiffness: 360 }
-        }
-    }
+    // Handle login
+    const handleLogin = (email) => {
+        localStorage.setItem('userEmail', email);
+        setUserEmail(email);
+        setIsLoggedIn(true);
+    };
 
-    
-        return (
-            <div className="Navibar">
-                <ul>
-                    <li id="logo" ><a href="#home"><img style={{ height: "1.5em" }} src="https://i.ibb.co/vDYXr2S/path1079.png" alt="log"></img>Mail Track</a></li>
+    // Handle logout
+    const handleLogout = () => {
+        localStorage.removeItem('userEmail');
+        setUserEmail('');
+        setIsLoggedIn(false);
+    };
 
-                    <li style={{ float: "right" }}><a href="dashboard"><div id="howtouse">Dashboard<i className="material-icons-outlined">
-                        arrow_forward_ios</i></div></a></li>
+    return (
+        <div className="Navibar">
+            <ul>
+                <li id="logo">
+                    <a href="#home">
+                        <img style={{ height: "1.5em" }} src="https://i.ibb.co/vDYXr2S/path1079.png" alt="logo" />
+                        Mail Track
+                    </a>
+                </li>
 
-                    {/* <li style={{ float: "right" }}><a href=""><div id="login">Dashboard</div></a></li> */}
-                    <li style={{ float: "right" }}><a><div>Welcome  </div></a></li>
-                </ul>
+                <li style={{ float: "right" }}>
+                    <a href="/dashboard">
+                        <div id="howtouse">Dashboard<i className="material-icons-outlined">arrow_forward_ios</i></div>
+                    </a>
+                </li>
 
-                <BrowserRouter>
-                    <Routes>
-                        <Route exact path="/" element={<Home />}></Route>
-                        <Route exact path="/dashboard" element={<Dashboard />}></Route>
-                        <Route exact path="/send" element={<SendMail />}></Route>
-                    </Routes>
-                </BrowserRouter>
-            </div>
-        );
-    
-    
+                <li style={{ float: "right" }}>
+                    <a href="/">
+                        <div id="login">Home</div>
+                    </a>
+                </li>
+
+                {isLoggedIn ? (
+                    <>
+                        <li style={{ float: "right" }}>
+                            <a onClick={handleLogout} style={{ cursor: 'pointer' }}>
+                                <div id="logout">Logout</div>
+                            </a>
+                        </li>
+                        <li style={{ float: "right" }}>
+                            <a>
+                                <div>Welcome "{userEmail}" </div>
+                            </a>
+                        </li>
+                    </>
+                ) : null /* Do not render Login button if logged in */}
+            </ul>
+
+            <BrowserRouter>
+                <Routes>
+                    <Route exact path="/" element={<Home />} />
+                    <Route exact path="/dashboard" element={<Dashboard />} />
+                    <Route exact path="/login" element={<Login onLogin={handleLogin} />} />
+                    <Route exact path="/send" element={<SendMail />} />
+                </Routes>
+            </BrowserRouter>
+        </div>
+    );
 }
 
 export default Navbar;

@@ -1,7 +1,6 @@
-import { useAuth0 } from "@auth0/auth0-react";
+
 import { motion } from 'framer-motion'
 function Home() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
 
   const text1 = "Tracking Your Emails Is Now "
   const text2 = "Super Easy."
@@ -60,8 +59,8 @@ function Home() {
             ))}
           </motion.div>
           <motion.p initial={{ x: '-100vw', opacity: 0 }} animate={{ x: 0, opacity: 1, transition: { delay: 2, type: 'spring', stiffness: 80 } }}>Mail Tracker helps you to check who opened your emails, how many times with zero cost and with great accuracy.
-            {isAuthenticated && <div id="gotodash"><a href="/dashboard">Go to Dashboard</a><i className="material-icons">
-              play_arrow</i></div>}
+            <div id="gotodash"><a href="/dashboard">Go to Dashboard</a><i className="material-icons">
+              play_arrow</i></div>
           </motion.p>
         </div>
         <div className="homeimages">

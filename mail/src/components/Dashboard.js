@@ -1,23 +1,33 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useAuth0 } from "@auth0/auth0-react";
 import 'material-icons/iconfont/material-icons.css';
+import Login from './Login';
 
 function Dashboard() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
   const [response, setResponse] = useState({ "data": { "res": [] } });
   const [bool, setBool] = useState(false);
   const [expandedRows, setExpandedRows] = useState([]);
 
+  // Get user email from localStorage
+  const userEmail = localStorage.getItem('userEmail');
+
   useEffect(() => {
-    axios.post("https://mailtrack.vercel.app/dashdata", { "email": "ronillakhani999@gmail.com" })
+    // Redirect to login if userEmail is not found
+    if (!userEmail) {
+      window.location.href = '/login';
+      return;
+    }
+
+    // Fetch data from the backend
+    axios.post("https://mailtrack.vercel.app/dashdata", { "email": userEmail })
       .then(res => {
         console.log("Backend Response:", res.data);
         setResponse(res.data);
         setBool(true);
       });
-  }, []);
+  }, [userEmail]); // Depend on userEmail to refetch if it changes
 
+  // Toggle row expansion
   const toggleRow = (index) => {
     if (expandedRows.includes(index)) {
       setExpandedRows(expandedRows.filter(i => i !== index));
@@ -25,6 +35,7 @@ function Dashboard() {
       setExpandedRows([...expandedRows, index]);
     }
   };
+
 
   const formatDateTime = (datetime) => {
     const [date, time] = datetime.split(' ');

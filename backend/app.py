@@ -89,14 +89,14 @@ def sendemail():
                 }}
 
                 .double-checkmark::before {{
-                    content: '\2714'; /* Unicode for checkmark */
+                    content: '\\2714'; /* Unicode for checkmark */
                     position: absolute;
                     left: 0;
                     top: 0;
                 }}
 
                 .double-checkmark::after {{
-                    content: '\2714'; /* Unicode for checkmark */
+                    content: '\\2714'; /* Unicode for checkmark */
                     position: absolute;
                     left: 0;
                     top: 0.8em; /* Adjust based on the font size */

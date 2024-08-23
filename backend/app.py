@@ -6,7 +6,7 @@ import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import datetime
 import pymongo
 
@@ -65,8 +65,23 @@ def sendemail():
         message["From"] = sender_email
         message["To"] = receiver_email
 
-        # Create and save a 1x1 transparent image temporarily in /tmp directory
-        image = Image.new('RGBA', (1, 1), (0, 0, 0, 0))  # Create a transparent image
+        # Create and save an image with a tick symbol temporarily in /tmp directory
+        image_size = (10, 10)  # Define image size
+        image = Image.new('RGB', image_size, color = (255, 255, 255))  # White background
+        draw = ImageDraw.Draw(image)
+
+        # Load a font
+        try:
+            # Use a common system font; ensure this font path exists or adjust the path
+            font = ImageFont.truetype("arial.ttf", 10)  # Adjust font size if necessary
+        except IOError:
+            font = ImageFont.load_default()
+
+        # Draw the tick symbol (✔) on the image
+        tick_symbol = "\u2714"  # Unicode for the tick symbol
+        draw.text((0, 0), tick_symbol, fill="black", font=font)  # Draw the text on the image
+
+        # Save the image
         filename = f"{sender_email}_{receiver_email}_{datetime.datetime.now().strftime('%Y-%m-%d+%H-%M-%S')}.png"
         temp_path = os.path.join("/tmp", filename)  # Save in /tmp directory
         image.save(temp_path)
@@ -79,7 +94,7 @@ def sendemail():
         <html>
           <body>
             {text}<br>
-            <img src="{img_url}" width="1" height="1" style="display:none;" alt="tracker" />
+            <img src="{img_url}" width="10" height="10" alt="tracker" />
           </body>
         </html>
         """

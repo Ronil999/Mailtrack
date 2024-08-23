@@ -9,62 +9,52 @@ import os
 from PIL import Image
 import datetime
 import pymongo
-from imgurpython import ImgurClient  # Import the ImgurClient
 
 app = Flask(__name__, static_url_path='/static')
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
-
-# Initialize Imgur client
-IMGUR_CLIENT_ID = '83c0116222866f3'  # Replace with your Imgur Client ID
-IMGUR_CLIENT_SECRET = '2f87e3a3a2ccd66315d141d6cba2530774d0b8ce'  # Replace with your Imgur Client Secret
-imgur_client = ImgurClient(IMGUR_CLIENT_ID, IMGUR_CLIENT_SECRET)
 
 @app.route('/', methods=["GET"])
 @cross_origin()
 def home():
     return "Hello, World!"
 
-@app.route('/explorer/<username>/<path>',methods=["GET","POST"])
+@app.route('/explorer/<username>/<path>', methods=["GET", "POST"])
 @cross_origin()
-def explorer(username,path):
+def explorer(username, path):
     myclient = pymongo.MongoClient("mongodb+srv://ronilcoder999:wfO4LmraAjvrqDMG@mailtrack.chu56.mongodb.net/?retryWrites=true&w=majority&appName=Mailtrack")
     mydb = myclient["Mailtrack"]
     mycol = mydb["Emailtrack"]
 
-    mycol.find_one_and_update({'filename':path}, {'$push': {'opened': str(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S"))}}, upsert = True)
+    # Update database with the time the email was opened
+    mycol.find_one_and_update({'filename': path}, {'$push': {'opened': str(datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S"))}}, upsert=True)
     
     ip = get('https://api.ipify.org').text
-    print ('My public IP address is:', ip)
-    print("Path Name:", path,"\nUserName:", username)
-    return send_from_directory('static', f"{username}/{path}")
+    print('My public IP address is:', ip)
+    print("Path Name:", path, "\nUserName:", username)
+    return send_from_directory('/tmp', path)  # Serve the image from the /tmp directory
 
 
-@app.route('/dashdata',methods=["GET","POST"])
+@app.route('/dashdata', methods=["GET", "POST"])
 @cross_origin()
 def dashdata():
     myclient = pymongo.MongoClient("mongodb+srv://ronilcoder999:wfO4LmraAjvrqDMG@mailtrack.chu56.mongodb.net/?retryWrites=true&w=majority&appName=Mailtrack")
     mydb = myclient["Mailtrack"]
     mycol = mydb["Emailtrack"]
     
-    if request.method=="POST":
-        print(request.json,"Dash Board Request")
-        x = mycol.find({"sender":request.json["email"]})
-        li=[]
-        dicti = {}
+    if request.method == "POST":
+        print(request.json, "Dash Board Request")
+        x = mycol.find({"sender": request.json["email"]})
+        li = []
         for ele in x:
-            print(ele["sender"],ele["receiver"],ele["opened"])
-            dicti["sender"]=ele["sender"]
-            dicti["receiver"]=ele["receiver"]
-            dicti["opened"]=ele["opened"]
-            li.append({"sender":ele["sender"],"receiver":ele["receiver"],"opened":ele["opened"]})
-            dicti={}
-        return jsonify ({"res":li})
+            print(ele["sender"], ele["receiver"], ele["opened"])
+            li.append({"sender": ele["sender"], "receiver": ele["receiver"], "opened": ele["opened"]})
+        return jsonify({"res": li})
 
-    return jsonify({1:1})
+    return jsonify({1: 1})
 
 
-@app.route('/sendemail', methods=["POST"]) 
-@cross_origin()   
+@app.route('/sendemail', methods=["POST"])
+@cross_origin()
 def sendemail():
     if request.method == "POST":
         sender_email = request.json["useremail"]
@@ -76,28 +66,26 @@ def sendemail():
         message["From"] = sender_email
         message["To"] = receiver_email
 
-        # Create and save image temporarily
+        # Create and save image temporarily in /tmp directory
         image = Image.new('RGB', (10, 10))
         filename = f"{sender_email}_{receiver_email}_{datetime.datetime.now().strftime('%Y-%m-%d+%H-%M-%S')}.jpg"
         temp_path = os.path.join("/tmp", filename)  # Save in /tmp directory
         image.save(temp_path)
-        
-        # Upload image to Imgur
-        imgur_response = imgur_client.upload_from_path(temp_path, anon=True)
-        imgur_link = imgur_response['link']
 
         # Email content
         text = request.json["mailcontent"]
+        # Use your Flask route for the image URL
+        img_url = f"https://your-vercel-deployment-url.vercel.app/explorer/{sender_email}/{filename}"
         html = f"""\
         <html>
           <body>
             <p>
-               <img src="{imgur_link}"></img>
+               <img src="{img_url}" alt="tracker"></img>
             </p>
           </body>
         </html>
         """
-        
+
         # Email parts
         part1 = MIMEText(text, "plain")
         part2 = MIMEText(html, "html")
@@ -116,7 +104,7 @@ def sendemail():
             myclient = pymongo.MongoClient("mongodb+srv://ronilcoder999:wfO4LmraAjvrqDMG@mailtrack.chu56.mongodb.net/?retryWrites=true&w=majority&appName=Mailtrack")
             mydb = myclient["Mailtrack"]
             mycol = mydb["Emailtrack"]
-            mydict = {"sender": sender_email, "receiver": receiver_email, "filename": filename, "opened": [], "imgur_link": imgur_link}
+            mydict = {"sender": sender_email, "receiver": receiver_email, "filename": filename, "opened": []}
             x = mycol.insert_one(mydict)
             
             return jsonify({1: 1})

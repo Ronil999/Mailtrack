@@ -46,10 +46,22 @@ def dashdata():
         li = []
         for ele in x:
             print(ele["sender"], ele["receiver"], ele["opened"])
-            li.append({"sender": ele["sender"], "receiver": ele["receiver"], "opened": ele["opened"]})
+
+            # Ensure opened is properly formatted as an array
+            opened_list = ele.get("opened", [])
+            if isinstance(opened_list, str):
+                # Convert a single string of concatenated dates to a list
+                opened_list = [opened_list[i:i+19] for i in range(0, len(opened_list), 19)]
+
+            li.append({
+                "sender": ele["sender"], 
+                "receiver": ele["receiver"], 
+                "opened": opened_list  # Always return an array
+            })
         return jsonify({"res": li})
 
     return jsonify({1: 1})
+
 
 
 @app.route('/sendemail', methods=["POST"])
@@ -79,36 +91,11 @@ def sendemail():
         # Corrected HTML with properly formatted CSS
         html = f"""\
         <html>
-        <head>
-            <style>
-                .double-checkmark {{
-                    position: relative;
-                    font-size: 200%;
-                    color: #4CAF50;
-                    display: inline-block;
-                }}
-
-                .double-checkmark::before {{
-                    content: '\\2714'; /* Unicode for checkmark */
-                    position: absolute;
-                    left: 0;
-                    top: 0;
-                }}
-
-                .double-checkmark::after {{
-                    content: '\\2714'; /* Unicode for checkmark */
-                    position: absolute;
-                    left: 0;
-                    top: 0.8em; /* Adjust based on the font size */
-                }}
-            </style>
-        </head>
+        
         <body>
             {text}<br>
             
             <img src="{img_url}" width="1" height="1" style="display:none;" alt="tracker" />
-            <span>MailTrack</span><br>
-            <span class="double-checkmark"></span>
         </body>
         </html>
         """

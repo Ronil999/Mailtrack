@@ -62,8 +62,8 @@ function Dashboard() {
                 <th>From</th>
                 <th>To</th>
                 <th>Number of Times Opened</th>
-                <th>Date</th>
-                <th>Time</th>
+                {/* <th>Date</th>
+                <th>Time</th> */}
               </tr>
             </thead>
             <tbody>

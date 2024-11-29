@@ -135,12 +135,23 @@ def dashdata():
 @cross_origin()
 def sendemail():
     if request.method == "POST":
-        sender_email = request.json["useremail"]
+        # Get user email and password from session data or request headers
+        sender_email = request.headers.get("useremail")  # Sent from the frontend
+        password = request.headers.get("userpass")       # Sent from the frontend
+
+        if not sender_email or not password:
+            return jsonify({"error": "User email and password are required!"}), 400
+
+        # Get receiver's email and message details from the request body
         receiver_email = request.json["recemail"]
-        password = request.json["userpass"]  # Use App Password here
+        subject = request.json["subject"]
+        text = request.json["mailcontent"]
+
+        # Preserve line breaks in HTML by replacing \n with <br>
+        html_content = text.replace("\n", "<br>")
 
         message = MIMEMultipart("alternative")
-        message["Subject"] = request.json["subject"]
+        message["Subject"] = subject
         message["From"] = sender_email
         message["To"] = receiver_email
 
@@ -150,27 +161,22 @@ def sendemail():
         temp_path = os.path.join("/tmp", filename)  # Save in /tmp directory
         image.save(temp_path)
 
-        # Email content
-        text = request.json["mailcontent"]
-        # Use your Flask route for the image URL
+        # Tracking pixel URL
         img_url = f"https://mailtrack.vercel.app/explorer/{sender_email}/{filename}"
-        
-        # Corrected HTML with properly formatted CSS
-        html = f"""\
+
+        # Email HTML content with tracking pixel
+        html = f"""
         <html>
-        
         <body>
-            {text}<br>
-            
+            {html_content}<br>
             <img src="{img_url}" width="1" height="1" style="display:none;" alt="tracker" />
         </body>
         </html>
         """
 
-
         # Email parts
-        part1 = MIMEText(text, "plain")
-        part2 = MIMEText(html, "html")
+        part1 = MIMEText(text, "plain")  # Plain-text part
+        part2 = MIMEText(html, "html")  # HTML part with preserved line breaks
         message.attach(part1)
         message.attach(part2)
 
@@ -178,18 +184,17 @@ def sendemail():
         context = ssl.create_default_context()
         try:
             with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-                server.login(sender_email, password)  # Use App Password
+                server.login(sender_email, password)  # Login with sender's credentials
                 server.sendmail(sender_email, receiver_email, message.as_string())
-            print(request.json)
-            
+
             # MongoDB logging
             myclient = pymongo.MongoClient("mongodb+srv://ronilcoder999:wfO4LmraAjvrqDMG@mailtrack.chu56.mongodb.net/?retryWrites=true&w=majority&appName=Mailtrack")
             mydb = myclient["Mailtrack"]
             mycol = mydb["Emailtrack"]
             mydict = {"sender": sender_email, "receiver": receiver_email, "filename": filename, "opened": []}
-            x = mycol.insert_one(mydict)
-            
-            return jsonify({1: 1})
+            mycol.insert_one(mydict)
+
+            return jsonify({"message": "Email sent successfully!"}), 200
         except smtplib.SMTPAuthenticationError as e:
             print(f"Authentication error: {e}")
             return jsonify({"error": "Authentication failed"}), 500
@@ -197,7 +202,7 @@ def sendemail():
             print(f"An error occurred: {e}")
             return jsonify({"error": str(e)}), 500
 
-    return jsonify({1: 1})
+    return jsonify({"error": "Invalid request method"}), 405
 
 
 if __name__ == "__main__":

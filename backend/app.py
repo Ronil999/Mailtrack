@@ -20,7 +20,7 @@ def home():
     return "Hello, World!"
 
 
-  # To securely hash passwords
+
 
 @app.route('/register', methods=["POST"])
 @cross_origin()

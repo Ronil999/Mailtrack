@@ -9,6 +9,7 @@ import os
 from PIL import Image
 import datetime
 import pymongo
+import bcrypt
 
 app = Flask(__name__, static_url_path='/static')
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
@@ -17,6 +18,72 @@ cors = CORS(app, resources={r"/*": {"origins": "*"}})
 @cross_origin()
 def home():
     return "Hello, World!"
+
+
+  # To securely hash passwords
+
+@app.route('/register', methods=["POST"])
+@cross_origin()
+def register():
+    """
+    Endpoint to register a new user.
+    Request Body: { "name": "string", "email": "string", "password": "string" }
+    """
+    myclient = pymongo.MongoClient("mongodb+srv://ronilcoder999:wfO4LmraAjvrqDMG@mailtrack.chu56.mongodb.net/?retryWrites=true&w=majority&appName=Mailtrack") 
+    mydb = myclient["Mailtrack"]
+    users_col = mydb["Users"]
+
+    if request.method == "POST":
+        data = request.json
+        name = data.get("name")
+        email = data.get("email")
+        password = data.get("password")
+
+        # Check if email already exists
+        if users_col.find_one({"email": email}):
+            return jsonify({"error": "Email already registered"}), 409  # Conflict
+
+        # Hash the password for security
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
+        # Save user details to database
+        user = {"name": name, "email": email, "password": hashed_password.decode('utf-8')}
+        users_col.insert_one(user)
+
+        return jsonify({"message": "User registered successfully!"}), 201
+
+    return jsonify({"error": "Invalid request method"}), 405
+
+
+@app.route('/login', methods=["POST"])
+@cross_origin()
+def login():
+    """
+    Endpoint to log in an existing user.
+    Request Body: { "email": "string", "password": "string" }
+    """
+    myclient = pymongo.MongoClient("mongodb+srv://ronilcoder999:wfO4LmraAjvrqDMG@mailtrack.chu56.mongodb.net/?retryWrites=true&w=majority&appName=Mailtrack") 
+    mydb = myclient["Mailtrack"]
+    users_col = mydb["Users"]
+
+    if request.method == "POST":
+        data = request.json
+        email = data.get("email")
+        password = data.get("password")
+
+        # Find user by email
+        user = users_col.find_one({"email": email})
+        if not user:
+            return jsonify({"error": "User not found"}), 404  # Not Found
+
+        # Validate the password
+        if bcrypt.checkpw(password.encode('utf-8'), user["password"].encode('utf-8')):
+            return jsonify({"message": "Login successful!"}), 200
+
+        return jsonify({"error": "Invalid credentials"}), 401  # Unauthorized
+
+    return jsonify({"error": "Invalid request method"}), 405
+
 
 @app.route('/explorer/<username>/<path>', methods=["GET", "POST"])
 @cross_origin()
